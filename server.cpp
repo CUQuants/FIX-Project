@@ -3,14 +3,43 @@
 #include <netinet/in.h>
 #include <cstring>
 #include <iostream>
+#include <thread>
+#include <map>
+
+std::map<int, int> client_sockets; // Map of socket to ID
+int next_id = 1; // Start IDs at 1
+
+void handle_client(int client_socket) {
+    char buffer[1024] = {0};
+    int client_id = client_sockets[client_socket];
+
+    while (true) {
+        memset(buffer, 0, sizeof(buffer));
+        int valread = read(client_socket, buffer, 1024);
+        if (valread <= 0) {
+            break;
+        }
+
+        // Prepend the message with the sender's ID
+        std::string message = "Client " + std::to_string(client_id) + ": " + buffer;
+
+        // Relay the message to all other clients
+        for (auto& pair : client_sockets) {
+            int other_socket = pair.first;
+            if (other_socket != client_socket) {
+                send(other_socket, message.c_str(), message.size(), 0);
+            }
+        }
+    }
+
+    close(client_socket);
+}
 
 int main() {
-    int server_fd, new_socket;
+    int server_fd;
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
-    char buffer[1024] = {0};
-    std::string hello = "Hello from server";
 
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("socket failed");
@@ -36,15 +65,17 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
-        perror("accept");
-        exit(EXIT_FAILURE);
-    }
+    while (true) {
+        int new_socket;
+        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
+            perror("accept");
+            exit(EXIT_FAILURE);
+        }
 
-    read(new_socket, buffer, 1024);
-    std::cout << buffer << std::endl;
-    send(new_socket, hello.c_str(), hello.size(), 0);
-    std::cout << "Hello message sent\n";
+        client_sockets[new_socket] = next_id++;
+        std::thread client_thread(handle_client, new_socket);
+        client_thread.detach();
+    }
 
     return 0;
 }

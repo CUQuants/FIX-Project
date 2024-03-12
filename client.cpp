@@ -1,11 +1,11 @@
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <cstring>
-#include <iostream>
+#include <sys/socket.h>     // For socket functions
+#include <arpa/inet.h>      // For inet_pton function
+#include <unistd.h>         // For read and write functions
+#include <cstring>          // For string manipulation functions
+#include <iostream>         // For input/output operations
 
 int main() {
-    struct sockaddr_in serv_addr;
+    struct sockaddr_in serv_addr;   //
     int sock = 0;
     char buffer[1024] = {0};
     std::string hello = "Hello from client";
@@ -28,10 +28,21 @@ int main() {
         return -1;
     }
 
-    send(sock, hello.c_str(), hello.size(), 0);
-    std::cout << "Hello message sent\n";
-    read(sock, buffer, 1024);
-    std::cout << buffer << std::endl;
+    while( true ) {
+        std::string message;
+        std::cout << "Enter message (to exit type 'exit'): ";
+        std::getline(std::cin, message);
 
+        if (message == "exit") {
+            break;
+        }
+
+        send(sock, message.c_str(), message.size(), 0);
+        std::cout << "Message sent\n";
+
+        read(sock, buffer, 1024);
+        std::cout << buffer << std::endl;
+    }
+   
     return 0;
 }
