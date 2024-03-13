@@ -1,11 +1,11 @@
-#include <sys/socket.h>     // For socket functions
-#include <arpa/inet.h>      // For inet_pton function
-#include <unistd.h>         // For read and write functions
-#include <cstring>          // For string manipulation functions
-#include <iostream>         // For input/output operations
+#include <sys/socket.h>     
+#include <arpa/inet.h>      
+#include <unistd.h>         
+#include <cstring>          
+#include <iostream>         
 
 int main() {
-    struct sockaddr_in serv_addr;   //
+    struct sockaddr_in serv_addr;   
     int sock = 0;
     char buffer[1024] = {0};
     std::string hello = "Hello from client";

@@ -6,8 +6,8 @@
 #include <thread>
 #include <map>
 
-std::map<int, int> client_sockets; // Map of socket to ID
-int next_id = 1; // Start IDs at 1
+std::map<int, int> client_sockets;
+int next_id = 1; 
 
 void handle_client(int client_socket) {
     char buffer[1024] = {0};
